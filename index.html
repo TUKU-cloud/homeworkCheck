@@ -2,107 +2,152 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8">
-  <title>課題提出フォーム</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>宿題提出フォーム</title>
   <style>
     body {
       font-family: sans-serif;
       text-align: center;
-      background-color: #eef;
-      padding: 20px;
+      background: #eef;
+      padding: 30px;
     }
-    select, input {
-      font-size: 1.2em;
+    input, select, button {
       margin: 10px;
+      padding: 10px;
+      font-size: 1em;
+      width: 80%;
+      max-width: 300px;
     }
     button {
-      font-size: 1.2em;
-      margin: 10px;
-      padding: 10px 20px;
-      background-color: #004466;
+      background: #007acc;
       color: white;
       border: none;
-      border-radius: 8px;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+    button:hover {
+      background: #005fa3;
+    }
+    #status {
+      margin-top: 20px;
+      font-size: 1.2em;
+      font-weight: bold;
+    }
+    table {
+      margin: 20px auto;
+      border-collapse: collapse;
+      background: white;
+    }
+    th, td {
+      border: 1px solid #333;
+      padding: 8px 12px;
+    }
+    th {
+      background: #ccc;
     }
   </style>
 </head>
 <body>
-  <h1>課題提出フォーム</h1>
+  <h2>📤 夏休みの宿題提出フォーム</h2>
 
-  <div>
-    <input type="text" id="id" placeholder="あなたのIDを入力">
-    <br>
-    <select id="task">
-      <option value="読書感想文">読書感想文</option>
-      <option value="計算ドリル">計算ドリル</option>
-      <option value="漢字練習">漢字練習</option>
-    </select>
-  </div>
+  <input type="text" id="id" placeholder="あなたのIDを入力（例：4215）"><br>
 
-  <div>
-    <button onclick="submitForm()">提出する</button>
-    <button onclick="deleteTask()">削除する</button>
-    <button onclick="checkTasks()">確認する</button>
-  </div>
+  <select id="task">
+    <option value="">--課題を選択--</option>
+    <option value="読書感想文">読書感想文</option>
+    <option value="貯金箱づくり">貯金箱づくり</option>
+    <option value="ポスター">ポスター</option>
+    <option value="自由研究">自由研究</option>
+    <option value="標語">標語</option>
+  </select><br>
+
+  <button onclick="submitForm()">提出する</button>
+  <button onclick="deleteTask()">削除する</button>
+  <button onclick="checkStatus()">確認する</button>
+
+  <div id="status"></div>
+  <div id="resultTable"></div>
 
   <script>
-  const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwgYLx0WRWFmuiXyrtjsE7elG4zkso1qm3NWtFUlIDEXpZ1WNwVjAk_296PsuImWcSPjg/exec";
+    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxgwwSAwODRzv4NVxC0OdQ-nSbqIDYJ6tsfu969eJju7NCn4clgVqDjo2QDlCJSY-yelg/exec";
+
     function submitForm() {
-      const id = document.getElementById("id").value.trim();
-      const task = document.getElementById("task").value;
-      const formData = new FormData();
-      formData.append("id", id);
-      formData.append("task", task);
-      formData.append("action", "submit");
+      const id = document.getElementById('id').value.trim();
+      const task = document.getElementById('task').value;
+      if (!id || !task) return alert("IDと課題を入力してください。");
+
+      const params = new URLSearchParams();
+      params.append("id", id);
+      params.append("task", task);
+      params.append("action", "submit");
 
       fetch(SCRIPT_URL, {
         method: "POST",
-        body: formData
+        body: params,
       })
       .then(res => res.text())
-      .then(text => alert("提出結果: " + text))
-      .catch(err => alert("通信エラー: " + err));
+      .then(txt => showStatus(txt))
+      .catch(err => showStatus("通信エラー：" + err));
     }
 
     function deleteTask() {
-      const id = document.getElementById("id").value.trim();
-      const task = document.getElementById("task").value;
-      const formData = new FormData();
-      formData.append("id", id);
-      formData.append("task", task);
-      formData.append("action", "delete");
+      const id = document.getElementById('id').value.trim();
+      const task = document.getElementById('task').value;
+      if (!id || !task) return alert("削除にはIDと課題の選択が必要です。");
+
+      const params = new URLSearchParams();
+      params.append("id", id);
+      params.append("task", task);
+      params.append("action", "delete");
 
       fetch(SCRIPT_URL, {
         method: "POST",
-        body: formData
+        body: params,
       })
       .then(res => res.text())
-      .then(text => alert("削除結果: " + text))
-      .catch(err => alert("通信エラー: " + err));
+      .then(txt => showStatus(txt))
+      .catch(err => showStatus("通信エラー：" + err));
     }
 
-    function checkTasks() {
-      const id = document.getElementById("id").value.trim();
-      const formData = new FormData();
-      formData.append("id", id);
-      formData.append("task", ""); // 不要だが送っておく
-      formData.append("action", "check");
+    function checkStatus() {
+      const id = document.getElementById('id').value.trim();
+      if (!id) return alert("IDを入力してください。");
+
+      const params = new URLSearchParams();
+      params.append("id", id);
+      params.append("check", "true");
 
       fetch(SCRIPT_URL, {
         method: "POST",
-        body: formData
+        body: params,
       })
-      .then(res => res.text())
-      .then(text => {
-        try {
-          const tasks = JSON.parse(text);
-          alert("提出済み課題: " + (tasks.length > 0 ? tasks.join(", ") : "なし"));
-        } catch {
-          alert("確認結果: " + text);
-        }
+      .then(res => res.json())
+      .then(data => {
+        let html = "<h3>★ 課題</h3><table><tr><th>課題</th><th>★</th></tr>";
+        data.stars.forEach(item => {
+          html += `<tr><td>${item[0]}</td><td>${item[1]}</td></tr>`;
+        });
+        html += `<tr><th>合計</th><td>${data.totalStars}</td></tr></table>`;
+
+        html += "<h3>ポイント課題</h3><table><tr><th>課題</th><th>ポイント</th></tr>";
+        data.points.forEach(item => {
+          html += `<tr><td>${item[0]}</td><td>${item[1]}</td></tr>`;
+        });
+        html += `<tr><th>合計</th><td>${data.totalPoints}</td></tr></table>`;
+
+        document.getElementById("resultTable").innerHTML = html;
       })
-      .catch(err => alert("通信エラー: " + err));
+      .catch(err => showStatus("確認エラー：" + err));
+    }
+
+    function showStatus(msg) {
+      const status = document.getElementById("status");
+      status.textContent = msg;
+      status.style.opacity = 1;
+      setTimeout(() => {
+        status.style.opacity = 0;
+      }, 2500);
     }
   </script>
 </body>
 </html>
+
