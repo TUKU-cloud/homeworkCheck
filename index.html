@@ -44,6 +44,10 @@
     th {
       background: #ccc;
     }
+    #animation {
+      margin-top: 20px;
+      font-size: 2em;
+    }
   </style>
 </head>
 <body>
@@ -53,11 +57,11 @@
 
   <select id="task">
     <option value="">--課題を選択--</option>
-    <option value="読書感想文">読書感想文</option>
-    <option value="貯金箱づくり">貯金箱づくり</option>
-    <option value="ポスター">ポスター</option>
-    <option value="自由研究">自由研究</option>
-    <option value="標語">標語</option>
+    <option value="読書感想文">読書感想文（★）</option>
+    <option value="貯金箱づくり">貯金箱づくり（★）</option>
+    <option value="ポスター">ポスター（★）</option>
+    <option value="自由研究">自由研究（10点）</option>
+    <option value="標語">標語（5点）</option>
   </select><br>
 
   <button onclick="submitForm()">提出する</button>
@@ -66,6 +70,7 @@
 
   <div id="status"></div>
   <div id="resultTable"></div>
+  <div id="animation"></div>
 
   <script>
     const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxgwwSAwODRzv4NVxC0OdQ-nSbqIDYJ6tsfu969eJju7NCn4clgVqDjo2QDlCJSY-yelg/exec";
@@ -135,6 +140,7 @@
         html += `<tr><th>合計</th><td>${data.totalPoints}</td></tr></table>`;
 
         document.getElementById("resultTable").innerHTML = html;
+        showAnimation(data.totalStars, data.totalPoints);
       })
       .catch(err => showStatus("確認エラー：" + err));
     }
@@ -147,7 +153,21 @@
         status.style.opacity = 0;
       }, 2500);
     }
+
+    function showAnimation(stars, points) {
+      const ani = document.getElementById("animation");
+      ani.innerHTML = ""; // clear
+
+      if (stars >= 3 && points >= 40) {
+        ani.innerHTML = "🎆🎆🎆 すごい！！とてもがんばったね 🎆🎆🎆";
+      } else if (stars >= 3 && points >= 30) {
+        ani.innerHTML = "🎇🎇 がんばったね 🎇🎇";
+      } else if (stars >= 2 && points >= 20) {
+        ani.innerHTML = "🌞 もうすこし 🌞";
+      } else if (stars >= 1 && points >= 10) {
+        ani.innerHTML = "🌸 がんばっているね 🌸";
+      }
+    }
   </script>
 </body>
 </html>
-
